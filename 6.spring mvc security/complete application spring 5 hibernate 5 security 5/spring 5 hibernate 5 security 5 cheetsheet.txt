@@ -1,0 +1,979 @@
+Spring framework step by step:
+------------------------
+Spring Hibernate CRUD REST Security 
+--------------------------
+
+
+Step 1: Spring CRUD with hibernate xml configuration
+================================================
+@Entity
+public class Book {
+	@Id @GeneratedValue(strategy=GenerationType.IDENTITY)
+	private int id;
+	private String isbn;
+	private String title;
+	private Double price;
+	private String author;
+	private String publisher;
+	private Date pubDate;
+
+
+public interface BookDao {
+	public Book add(Book book);
+	public Book delete(int bookId);
+	public Book update(Book book);
+	public Book getById(int bookId);
+	public Book getByIsbn(String isbn);
+	public List<Book> getAll();
+}
+
+
+Dao layer
+---------
+@Repository
+public class BookDaoImpl implements BookDao {
+
+	@Autowired
+	private SessionFactory factory;
+
+	private Session getSession() {
+		return factory.getCurrentSession();
+	}
+
+	@Override
+	public Book add(Book book) {
+		getSession().save(book);
+		return book;
+	}
+
+	@Override
+	public Book delete(int bookId) {
+		Book book = getById(bookId);
+		if (book != null)
+			getSession().delete(book);
+		return book;
+
+	}
+
+	@Override
+	public Book update(Book book) {
+		getSession().merge(book);
+		return book;
+	}
+
+	@Override
+	public Book getById(int bookId) {
+		return getSession().get(Book.class, bookId);
+	}
+
+	@Override
+	public Book getByIsbn(String isbn) {
+		return null;
+	}
+
+	@Override
+	public List<Book> getAll() {
+		return getSession().createQuery("from Book").list();
+	}
+
+}
+
+
+service layer:
+---------------
+public interface BookService {
+	public Book add(Book book);
+	public Book delete(int bookId);
+	public Book update(Book book);
+	public Book getById(int bookId);
+	public Book getByIsbn(String isbn);
+	public List<Book> getAll();
+}
+
+
+
+@Service(value="bs")
+@Transactional
+public class BookServiceImpl implements BookService{
+
+	@Autowired
+	private BookDao bookDao;
+	
+	@Override
+	public Book add(Book book) {
+		return bookDao.add(book);
+	}
+
+	@Override
+	public Book delete(int bookId) {
+		return bookDao.delete(bookId);
+	}
+
+	@Override
+	public Book update(Book book) {
+		return bookDao.update(book);
+	}
+
+	@Override
+	public Book getById(int bookId) {
+		return bookDao.getById(bookId);
+	}
+
+	@Override
+	public Book getByIsbn(String isbn) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Book> getAll() {
+		return bookDao.getAll();
+	}
+
+}
+
+
+
+db.properties
+-----------------
+driver=com.mysql.cj.jdbc.Driver
+url=jdbc:mysql://localhost:3306/raj_exp
+username=root
+password=root
+
+
+
+
+Spring hibernate configuration file:
+-------------------------------------------
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+	
+	<context:component-scan base-package="com.bookapp"></context:component-scan>
+	<bean id="ds"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="username" value="root" />
+		<property name="password" value="root" />
+		<property name="url" value="jdbc:mysql://localhost:3306/raj_exp" />
+	</bean>
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource" ref="ds" />
+		<property name="packagesToScan">
+			<list>
+				<value>com.bookapp.model.entities</value>
+			</list>
+		</property>
+
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.formate_sql">true</prop>
+			</props>
+		</property>
+	</bean>
+
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/>
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+</beans>
+
+testing sring hibernate application:
+-----------------------------------
+	ApplicationContext ctx=new ClassPathXmlApplicationContext("beans.xml");
+		
+		Book book=new Book("AB123", "java is fun", 200.9,"raj", "wrox", new Date());
+		BookService service=ctx.getBean("bs", BookService.class);
+		
+		service.add(book);
+
+Spring AOP
+==================
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Loggable {
+}
+
+
+@Component
+@Aspect
+public class MethodLogger {
+
+	@Around("@annotation(Loggable)")
+	public Object around(ProceedingJoinPoint point) throws Throwable {
+		System.out.println("logging is done...");
+		Object result = point.proceed();
+		return result;
+	}
+}
+
+
+
+
+
+
+Step 2: Spring hibernate Java configuration 
+---------------------------------------------
+
+@Configuration
+@ComponentScan(basePackages = { "com.bookapp.model" })
+@EnableAspectJAutoProxy
+@EnableTransactionManagement
+@PropertySource(value="classpath:db.properties")
+public class AppConfig {
+
+	@Autowired
+	private Environment environment;
+	
+	@Bean
+	public LocalSessionFactoryBean getSessionFactory() {
+
+		LocalSessionFactoryBean lsfb = new LocalSessionFactoryBean();
+		lsfb.setDataSource(getDataSource());
+		lsfb.setPackagesToScan("com.bookapp.model.dao");
+		lsfb.setHibernateProperties(getHibernateProperties());
+		return lsfb;
+
+	}
+
+	private DataSource getDataSource() {
+		DriverManagerDataSource ds=new DriverManagerDataSource();
+		ds.setDriverClassName(environment.getProperty("driver"));
+		ds.setUrl(environment.getProperty("url"));
+		ds.setPassword(environment.getProperty("password"));
+		ds.setUsername(environment.getProperty("username"));
+		return ds;
+	}
+
+	@Bean
+	public Properties getHibernateProperties() {
+		Properties properties = new Properties();
+		properties.setProperty("hibernate.hbm2ddl.auto", "update");
+		properties.setProperty("hibernate.dialect",
+				"org.hibernate.dialect.MySQLDialect");
+		properties.setProperty("hibernate.show_sql", "true");
+		properties.setProperty("hibernate.formate_sql", "true");
+		return properties;
+	}
+
+	@Bean
+	public PersistenceExceptionTranslationInterceptor getPersistenceExceptionTranslationInterceptor() {
+		return new PersistenceExceptionTranslationInterceptor();
+	}
+
+	@Bean(name = "transactionManager")
+	public HibernateTransactionManager getTransactionManager(SessionFactory factory) {
+		HibernateTransactionManager tmx = new HibernateTransactionManager();
+		tmx.setSessionFactory(factory);
+		return tmx;
+	}
+}
+
+
+
+Step 3: Spring MVC xml configuration
+=====================================
+
+1. configuration front controller- dispacher servlet
+2. configure servlet context listner
+3. configure view resolver
+
+
+	<context:component-scan base-package="com.bookapp.web"/>
+	<mvc:annotation-driven/>
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/views/"/>
+		<property name="suffix" value=".jsp"/>
+	</bean>
+
+
+
+
+
+import java.util.Arrays;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.bookapp.model.dao.Book;
+import com.bookapp.model.service.BookNotFoundException;
+import com.bookapp.model.service.BookService;
+
+@Controller
+public class BookController {
+
+	@Autowired
+	private BookService service;
+
+	@ModelAttribute(value="publishers")
+	public List<String> getAllPublishers(){
+		return Arrays.asList("pbp","wrox","headfirst");
+	}
+	
+	@RequestMapping(value = "getallbooks", method = RequestMethod.GET)
+	public ModelAndView getAllBooks(ModelAndView mv) {
+		mv.setViewName("show_books");
+		mv.addObject("books", service.getAll());
+		return mv;
+	}
+
+	@RequestMapping(value = "addbook", method = RequestMethod.GET)
+	public String addBook(Model model) {
+		model.addAttribute("book", new Book());
+		return "add_book";
+	}
+	
+	@RequestMapping(value = "update", method = RequestMethod.GET)
+	public String updateBook(HttpServletRequest request , ModelMap model) {
+		
+		Integer bookId=Integer.parseInt(request.getParameter("id"));
+		Book bookToUpdate=service.getById(bookId);
+		model.addAttribute("book",bookToUpdate );
+		return "add_book";
+	}
+
+	@RequestMapping(value = "delete", method = RequestMethod.GET)
+	public String deleteBook(HttpServletRequest request ) {
+		
+		Integer bookId=Integer.parseInt(request.getParameter("id"));
+		service.delete(bookId);
+		return "redirect:getallbooks";
+	}
+
+	
+	@RequestMapping(value = "addbook", method = RequestMethod.POST)
+	public String addBookPost(@ModelAttribute(value="book") @Valid Book book, BindingResult bindingResult) {
+		if(bindingResult.hasErrors()){
+			return "add_book";
+		}else{
+		if(book.getId()==0)
+			service.add(book);
+		else
+			service.update(book);
+		}
+		return "redirect:getallbooks";
+	}
+
+	@ExceptionHandler(BookNotFoundException.class)
+	public ModelAndView handleBookNotFoundException(HttpServletRequest request, Exception ex){
+		ModelAndView modelAndView = new ModelAndView();
+	    modelAndView.addObject("exception", ex);
+	    modelAndView.addObject("url", request.getRequestURL());
+	    
+	    modelAndView.setViewName("error");
+	    return modelAndView;
+	}	
+}
+
+
+
+
+ <display-name>sp_app</display-name>
+  	<servlet>
+		<servlet-name>springDispatcherServlet</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>/WEB-INF/web-config.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<!-- Map all requests to the DispatcherServlet for handling -->
+	<servlet-mapping>
+		<servlet-name>springDispatcherServlet</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+	
+	<!-- needed for ContextLoaderListener -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>/WEB-INF/model-config.xml</param-value>
+	</context-param>
+
+	<!-- Bootstraps the root web application context before servlet initialization -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+-------------------
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.bookapp.model.dao.Book;
+import com.bookapp.model.service.BookService;
+
+@RestController
+@RequestMapping("/api")
+public class BookControllerRest {
+
+	@Autowired
+	private BookService bookService;
+	
+	@GetMapping(path="book", produces=MediaType.APPLICATION_JSON_VALUE)
+	public List<Book> allbooks(){
+		return bookService.getAll();
+	}
+	@GetMapping(path="book/{id}",produces=MediaType.APPLICATION_JSON_VALUE )
+	public Book getBookById(@PathVariable(name="id")int id){
+		return bookService.getById(id);
+	}
+	
+	@PostMapping(path="book",produces=MediaType.APPLICATION_JSON_VALUE, 
+			consumes=MediaType.APPLICATION_JSON_VALUE )
+	public Book addBook(@RequestBody Book book){
+		return bookService.add(book);	
+	}
+	
+	@PostMapping(path="book/{id}",produces=MediaType.APPLICATION_JSON_VALUE, 
+			consumes=MediaType.APPLICATION_JSON_VALUE )
+	public Book updateBook(@PathVariable(name="id") int id,   @RequestBody Book book){
+		return  bookService.update(book);	
+		
+	}
+	
+	
+	@DeleteMapping(path="book/{id}",produces=MediaType.APPLICATION_JSON_VALUE)
+	public Book deleteBook(@PathVariable(name="id") int id){
+		return bookService.delete(id);	
+	}
+}
+
+
+Step 4: Spring MVC Hibernate Java configuration
+================================================
+
+@EnableWebMvc
+@Configuration
+@ComponentScan(basePackages={"com.bookapp.web"})
+
+public class WebConfig implements WebMvcConfigurer{
+
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		registry.addResourceHandler("/resources/**").addResourceLocations("/resources/");
+	}
+	@Bean
+	public InternalResourceViewResolver getViewResoulver(){
+		InternalResourceViewResolver irv=new InternalResourceViewResolver();
+		irv.setPrefix("/WEB-INF/views/");
+		irv.setSuffix(".jsp");
+		return irv;
+	}
+}
+
+
+Exception handler:
+----------------
+
+@ControllerAdvice
+public class GlobalDefaultHandler {
+
+	@ExceptionHandler(NoHandlerFoundException.class)
+	public ModelAndView handlerNotFoundEx() {
+		ModelAndView mv = new ModelAndView();
+		mv.setViewName("404");
+		mv.addObject("error", "resource/page not found");
+		return mv;
+	}
+
+	@ExceptionHandler(DataAccessException.class)
+	public String handleDataAccessException(HttpServletRequest request,
+			Exception ex) {
+		ModelAndView mv = new ModelAndView();
+		mv.addObject("exception", ex);
+		mv.addObject("url", request.getRequestURL());
+		return "database_error";
+	}
+}
+
+
+
+
+
+
+public class WebInitilizer extends AbstractAnnotationConfigDispatcherServletInitializer{
+
+	@Override
+	protected Class<?>[] getRootConfigClasses() {
+		return new Class[]{AppConfig.class};
+	}
+	@Override
+	protected Class<?>[] getServletConfigClasses() {
+		return new Class[]{WebConfig.class};
+	}
+	@Override
+	protected String[] getServletMappings() {
+		return new String[]{"/"};
+	}
+	//Configuration for error handling
+	@Override
+	protected FrameworkServlet createDispatcherServlet(
+			WebApplicationContext servletAppContext) {
+		DispatcherServlet ds=new DispatcherServlet(servletAppContext);
+		ds.setThrowExceptionIfNoHandlerFound(true);
+		return ds;
+	}
+
+}
+
+
+
+
+
+Step 5: Spring MVC Security Java configuration
+================================================
+
+1.configure SecurityWebInitilizer //this class magically configure security filter
+
+
+public class SecurityWebInitilizer extends
+	AbstractSecurityWebApplicationInitializer{
+}
+
+
+
+2. 
+@Configuration
+@EnableWebSecurity
+@ComponentScan(basePackages={"com.bookapp.security.config"})
+public class SecurityConfig extends WebSecurityConfigurerAdapter{
+
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		UserBuilder builder=User.withDefaultPasswordEncoder();
+		auth.inMemoryAuthentication()
+		.withUser(builder.username("raj").password("raj").roles("admin"))
+		.withUser(builder.username("eku").password("eku").roles("mgr"))
+		.withUser(builder.username("gunika").password("gunika").roles("emp"));
+		
+	}
+	
+	
+//	
+}
+
+3. mention SecurityConfig.class in WebInitilizer
+
+
+
+
+
+
+Spring security custom login page
+-----------------------------------
+
+step 1: override configure method in SecurityConfig class
+
+@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http.authorizeRequests()
+		.anyRequest()
+		.authenticated()
+		.and()
+		.formLogin().loginPage("/showLoginPage")
+		.loginProcessingUrl("/authTheUser")
+		.permitAll();
+	}
+
+
+step 2: define login controller
+
+@Controller
+public class LoginController {
+	
+	@GetMapping("/showLoginPage")
+	public String showLoginPage(){
+		return "login_page";
+	}
+
+}
+
+step 3: define login page
+
+<c:url var="url" value="/authTheUser"></c:url>
+<form:form action="${url }" method="Post">
+	User:<input type='text' name='username'><br/>
+	Password:<input type='password' name='password'/><br/>
+	<input name="submit" type="submit" value="Login"/>
+</form:form>
+
+step 4: showing custom error message:
+
+<c:if test="${param.error!=null }">
+	<i>You have invalid username/password!</i>
+</c:if>
+<c:if test="${param.logout!=null }">
+	<i>You logged out successfully!</i>
+</c:if>
+
+
+
+
+creating custom logout and home page:
+-----------------------------
+
+ step 1: give mapping in login controller
+
+
+	@GetMapping("/")	
+	public String showPage(){
+		return "home";
+	}
+
+
+ step 2: create home page (copy)
+
+<c:url var="logout" value="/logout"></c:url>
+<form:form action="${logout }" method ="post">
+	<input type="submit" value="logout">
+</form:form>
+
+
+
+ step 3: update configure method in SecurityConfig
+
+
+@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http.authorizeRequests()
+		.anyRequest()
+		.authenticated()
+		.and()
+		.formLogin().loginPage("/showLoginPage")
+		.loginProcessingUrl("/authTheUser")
+		.permitAll()
+		.and()
+		.logout();
+	}
+	
+
+
+
+
+Step 4: display user role and username on JSP after logged in
+
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+
+
+User: <sec:authentication property="principal.username"/>
+User profile: <sec:authentication property="principal.authorities"/>
+
+
+
+
+Step 5 : restrict access as per role
+--------------------------------------
+
+
+step 1:
+
+@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		UserBuilder builder=User.withDefaultPasswordEncoder();
+		auth.inMemoryAuthentication()
+		.withUser(builder.username("raj").password("raj").roles("ADMIN"))
+		.withUser(builder.username("eku").password("eku").roles("MGR"))
+		.withUser(builder.username("gunika").password("gunika").roles("EMP"));
+		
+	}
+
+
+@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http.authorizeRequests()
+		.antMatchers("/").hasAnyRole("EMP","ADMIN","MGR")
+		.antMatchers("/admin/**").hasRole("ADMIN")
+		.antMatchers("/mgr/**").hasRole("MGR")
+		/*.anyRequest().authenticated()*/
+		.and()
+		.formLogin()
+			.loginPage("/showLoginPage")//url pattern of controller that display login page
+			.loginProcessingUrl("/authTheUser")
+			.permitAll()
+		.and()
+			.logout().permitAll();
+	}
+	
+	
+
+
+
+step : change controller
+-------------------------
+
+
+@GetMapping("/showLoginPage")
+	public String showLoginPage(){
+		return "login_page";
+	}
+	
+	
+
+	@GetMapping(value="/admin")	
+	public String showAdmin(){
+		return "home_admin";
+	}
+	
+
+	
+	@GetMapping(value="/mgr")	
+	public String showMgr(){
+		return "home_mgr";
+	}
+	
+	
+
+step :change home home page
+------------------------
+	<sec:authorize access="hasAnyRole('MGR','ADMIN')">
+		<a href="mgr">MGR</a>
+		<br />
+	</sec:authorize>
+
+	<sec:authorize access="hasRole('ADMIN')">
+		<a href="admin">admin</a>
+		<br />
+	</sec:authorize>
+
+
+	<a href="getallbooks">all books</a>
+
+
+
+
+
+Step 7: create an custom access denied page
+-------------------------------------------
+
+.and()
+ .exceptionHandling().accessDeniedPage("/access_denied");
+
+
+
+@GetMapping(value="/access_denied")	
+	public String accessDenied(){
+		return "access_denied";
+	}
+
+
+put access_denied.jsp
+
+access_denied
+<c:url var="home" value="/"></c:url>
+<a href="${home }">home</a>
+
+
+
+
+
+Spring Security with hibernate
+------------------------------
+
+step1: create dao , dto etc
+
+
+@Entity
+@Table
+public class User {
+	public static final BCryptPasswordEncoder encode=
+			new BCryptPasswordEncoder();
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
+	private String username;
+	private String password;
+	private String email;
+	private boolean status;
+	
+	private String []roles;
+	public User(String username, String password, String email, boolean status,
+			String[] roles) {
+		super();
+		this.username = username;
+		setPassword(password);
+		this.email = email;
+		this.status = status;
+		this.roles = roles;
+	}
+
+	public void setPassword(String password) {
+		this.password = encode.encode(password);
+	}
+
+
+
+public interface UserDao {
+	public User findByUsername(String username);
+	public void insert(User user);
+}
+
+
+
+
+
+@Repository
+public class UserDaoImpl implements UserDao {
+	
+	@Autowired
+	private SessionFactory sessionFactory;
+	
+	private Session openSession() {
+		return sessionFactory.getCurrentSession();
+	}
+
+	public User findByUsername(String username){
+		Query query = openSession().createQuery("from User u where u.username = :username");
+		query.setParameter("username", username);
+		List<User>userList = query.list();
+		if (userList.size() > 0)
+			return userList.get(0);
+		else
+			return null;	
+	}
+
+	public void insert(User user){
+		openSession().save(user);
+	}
+}
+
+
+
+public interface UserService {
+	public User findByUsername(String username);
+	public void insert(User user);
+}
+
+
+
+@Service
+@Transactional
+public class UserServiceImpl implements UserService {
+	
+	@Autowired
+	private UserDao userDao;
+
+	public User findByUsername(String username){
+		return userDao.findByUsername(username);
+		
+	}
+	@Override
+	public void insert(User user) {
+		userDao.insert(user);
+	}
+
+}
+
+
+
+
+@Service
+@Transactional
+public class DetailService implements UserDetailsService {
+
+	@Autowired
+	private UserService userService;
+	
+	//@PostConstruct
+	public void post(){
+		User user1=new User("raj", "raj", "raj.mtech@gmail.com", true, new String[]{"ROLE_EMP", "ROLE_MGR","ROLE_ADMIN"});
+		User user2=new User("eku", "eku", "eku.mtech@gmail.com", true, new String[]{"ROLE_MGR","ROLE_EMP"});
+		User user3=new User("gun", "gun", "raj.mtech@gmail.com", true, new String[]{"ROLE_EMP"});
+		
+		System.out.println("inserting an default user");
+		userService.insert(user1);
+		userService.insert(user2);
+		userService.insert(user3);
+	}
+	@Override
+	public UserDetails loadUserByUsername(String username)throws UsernameNotFoundException {
+		User user=userService.findByUsername(username);
+		if(user==null)
+			throw new UsernameNotFoundException("username is not found");
+		return new org.springframework.security.core.userdetails.User(user.getUsername()
+				,user.getPassword(),AuthorityUtils.createAuthorityList(user.getRoles()));
+	}
+}
+
+
+
+
+
+Step 3:Injecting UserDetailService to security config so that it use hibernate configuration
+
+
+
+
+@Configuration
+@EnableWebSecurity
+@ComponentScan(basePackages={"com.bookapp.security.config"})
+public class SecurityConfig extends WebSecurityConfigurerAdapter{
+	
+	@Autowired
+	private UserDetailsService detailService;
+	
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+	//
+	}
+
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.userDetailsService(detailService).passwordEncoder(com.bookapp.model.entities.User.encode);
+		
+	}	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
