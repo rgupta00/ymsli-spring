@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- <bean id="tri" class="com.demo.Triangle">
+		<property name="pointA" ref="p1" />
+		<property name="pointB" ref="p2" />
+		<property name="pointC" ref="p3" />
+	</bean> -->
+
+
+	<bean id="c" class="com.demo.Country">
+		<property name="countryName" value="india"/>
+		<property name="states">
+			<props>
+				<prop key="tamilnadu">chennai</prop>
+				<prop key="punjab">chandigarh</prop>
+			</props>
+		</property>
+	</bean>
+
+
+
+
+
+	<!-- list, map vs properties
+	map k-V: string -Object
+	properties: k-v string-string
+	 -->
+
+	<bean id="mg" class="com.demo.MusicGroup">
+		<property name="groupName" value="pop g1"/>
+		<property name="musicianNames">
+			<list>
+				<value>rahaman</value>
+				<value>rahaman</value>
+				<value>rahaman</value>
+			</list>
+		</property>
+	</bean>
+
+
+	<bean id="sh" class="com.demo.Shape">
+		<property name="shapeName" value="penta"/>
+		<property name="points">
+			<list>
+				<ref bean="p1"/>
+				<ref bean="p2"/>
+				<ref bean="p3"/>
+				<ref bean="p4"/>
+				<ref bean="p5"/>
+			</list>
+		</property>
+	</bean>
+
+
+
+	<bean id="p1" class="com.demo.Point">
+		<property name="x" value="12" />
+		<property name="y" value="12" />
+	</bean>
+
+	<bean id="p2" class="com.demo.Point">
+		<property name="x" value="1" />
+		<property name="y" value="-12" />
+	</bean>
+
+
+	<bean id="p3" class="com.demo.Point">
+		<property name="x" value="5" />
+		<property name="y" value="7" />
+	</bean>
+	
+	
+	<bean id="p4" class="com.demo.Point">
+		<property name="x" value="5" />
+		<property name="y" value="7" />
+	</bean>
+	
+	
+	<bean id="p5" class="com.demo.Point">
+		<property name="x" value="5" />
+		<property name="y" value="7" />
+	</bean>
+	
+</beans>
