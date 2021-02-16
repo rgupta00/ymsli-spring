@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+<bean id="bank" class="com.demo2.Bank">
+	<property name="bankName" value="SBI"/>
+	<property name="branchNames">
+		<list>
+		<value>KN</value>
+		<value>LN</value>
+		<value>PV</value>
+		<value>GV</value>
+		</list>
+	</property>
+	<property name="accounts">
+		<list>
+			<ref bean="acc1"/>
+			<ref bean="acc2"/>
+			<ref bean="acc3"/>
+		</list>
+	</property>
+	<property name="branchAndRank">
+		<props>
+		<prop key="KN">9</prop>
+		<prop key="LN">9</prop>
+		<prop key="PV">8</prop>
+		<prop key="GV">7</prop>
+		</props>
+	</property>
+	<property name="richDetails">
+		<map>
+			<entry key="KN" value-ref="acc1"/>
+			<entry key="LN" value-ref="acc2"/>
+			<entry key="PV" value-ref="acc3"/>
+		</map>
+	
+	</property>
+</bean>
+
+<bean id="acc3" class="com.demo2.Account" c:id="44" c:name="ekta" c:balance="5000"
+	c:address="ln delhi 51" c:email="ekta@gmail.com" c:phone="64545454545"/>
+
+<!-- <alias name="acc3"  alias="account3"/> -->
+
+<bean id="acc2" class="com.demo2.Account" p:id="44" p:name="ekta" p:balance="5000"
+	p:address="ln delhi 51" p:email="ekta@gmail.com" p:phone="64545454545"/>
+
+
+<bean id="acc1" class="com.demo2.Account">
+	<property name="id" value="33"/>
+	<property name="name" value="raj"/>
+	<property name="balance" value="6000"/>
+	<property name="address" value="kn delhi 51"/>
+	<property name="email" value="raj@gmail.com"/>
+	<property name="phone" value="64545454545"/>
+</bean>
+
+</beans>

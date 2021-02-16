@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	 http://www.springframework.org/schema/beans/spring-beans.xsd">
+	 
+	 <bean id="p" class="com.demo.Passanger">
+	 	<property name="name" value="raja"/>
+	 	<property name="age" value="41"/>
+	 	<property name="vehical" ref="v1"/>
+	</bean>
+	
+	<bean id="v1" class="com.demo.Car"/>
+	  <bean id="v2" class="com.demo.Car"/>
+	  
+	  
+	 <!--  constructor -->
+	<!--  <bean id="p" class="com.demo.Passanger">
+	 	<property name="name" value="raja"/>
+	 	<property name="age" value="42"/>
+	 	<property name="vehical" ref="v1"/>
+	 </bean>
+	 <bean id="v1" class="com.demo.Car"/>
+	  <bean id="v2" class="com.demo.Car"/> -->
+</beans>

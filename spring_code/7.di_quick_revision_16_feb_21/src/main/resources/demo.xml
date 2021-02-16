@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+
+
+	<!-- autowring -->
+	
+	<bean id="p" class="com.demo.Passanger" autowire="byType">
+		<property name="age" value="20"/>
+		<property name="name" value="amit"/>
+		
+	</bean>
+	<bean id="vehical" class="com.demo.Bike"/>
+	<bean id="vehical2" class="com.demo.Car" primary="true"/> 
+	<bean id="address" class="com.demo.Address">
+		<property name="address" value="krishna nagar delhi 51"/>
+	</bean>
+	
+
+	<!-- c namespace -->
+<!--     <bean id="p" class="com.demo.Passanger" c:name="gun" c:age="20"  c:vehical-ref="v2">
+	</bean>
+	<bean id="v1" class="com.demo.Bike"/>
+	<bean id="v2" class="com.demo.Car"/>  -->
+
+
+	<!-- p namespace -->
+	<!-- <bean id="p" class="com.demo.Passanger" p:age="20" p:name="raj" p:vehical-ref="v2"/>
+	
+	<bean id="v1" class="com.demo.Bike"/>
+	<bean id="v2" class="com.demo.Car"/> -->
+
+
+
+
+<!-- 	<bean id="p" class="com.demo.Passanger">
+		<property name="age" value="20"/>
+		<property name="name" value="amit"/>
+		<property name="vehical" ref="v1"/>
+	</bean>
+	<bean id="v1" class="com.demo.Bike"/>
+	<bean id="v2" class="com.demo.Car"/> -->
+</beans>
