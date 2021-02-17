@@ -5,9 +5,13 @@ import org.springframework.stereotype.Component;
 @Component
  public class Magician {
 	
-	public void doMagic() {
+	public String doMagic() {
 		System.out.println("abra ka dabra...");
-		if(1==31)
-			throw new RuntimeException("feeling sick ex..");
+		return "rabbit form the hat";
+	}
+	
+	public void doEat(String food) {
+		System.out.println("eating food before magic...");
+		//return "food is done";
 	}
 }
