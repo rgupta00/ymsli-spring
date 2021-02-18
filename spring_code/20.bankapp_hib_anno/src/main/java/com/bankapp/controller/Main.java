@@ -5,6 +5,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.bankapp.config.AppConfig;
+import com.bankapp.config.AppConfig2;
 import com.bankapp.dao.Account;
 import com.bankapp.service.AccountService;
 import java.util.*;
@@ -12,12 +13,15 @@ public class Main {
 
 	public static void main(String[] args) {
 		//ApplicationContext applicationContext=new ClassPathXmlApplicationContext("bank.xml");
-		AnnotationConfigApplicationContext applicationContext=new AnnotationConfigApplicationContext(AppConfig.class);
+		AnnotationConfigApplicationContext applicationContext=new AnnotationConfigApplicationContext(AppConfig2.class);
 		
 		AccountService accountService=applicationContext.getBean("as", AccountService.class);
 		
-		accountService.transfer(1, 2, 400);
-		System.out.println("-----transfered------");
+		List<Account> accounts=accountService.getAllAccounts();
+		accounts.forEach(a-> System.out.println(a));
+		
+		//accountService.transfer(1, 2, 400);
+		//System.out.println("-----transfered------");
 		
 		
 //		List<Account> accounts=accountService.getAllAccounts();

@@ -15,7 +15,10 @@ public class Main {
 //		AnnotationConfigApplicationContext applicationContext=new AnnotationConfigApplicationContext(AppConfig.class);
 //		
 		AccountService accountService = applicationContext.getBean("as", AccountService.class);
-//		
+		
+	List<Account> accounts=accountService.getAllAccounts();
+		accounts.forEach(a-> System.out.println(a));	
+	
 	//accountService.transfer(2, 1, 100);
 	//System.out.println("-----transfered------");
 

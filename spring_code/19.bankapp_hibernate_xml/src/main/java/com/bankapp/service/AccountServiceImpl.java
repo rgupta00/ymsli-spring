@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +36,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public List<Account> getAllAccounts() {
-		return accountDao.getAllAccounts();
+		return	 accountDao.getAllAccounts();
 	}
 
 	@Override
@@ -63,7 +64,7 @@ public class AccountServiceImpl implements AccountService {
 		 * if(1==1) throw new RuntimeException();
 		 */
 		accountDao.update(toAcc);
-		
+
 		System.out.println("amount is transferred successfully");
 		if (emailService != null) {
 			emailService.sendMessage(fromAcc.getEmail(), "money is transferd from your acc");
@@ -98,11 +99,11 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public void updateCustomerDetails(int id, String address, String phone, String email) {
-		Account accountToUpdate= getById(id);
+		Account accountToUpdate = getById(id);
 		accountToUpdate.setAddress(address);
 		accountToUpdate.setPhone(phone);
 		accountToUpdate.setEmail(email);
-		
+
 		accountDao.update(accountToUpdate);
 	}
 
