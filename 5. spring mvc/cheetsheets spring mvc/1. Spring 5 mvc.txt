@@ -240,9 +240,16 @@ Spring MVC annotations
 
 http://localhost:8080/mvcdemo/bookapp/delete/22
 
+
+
+
 @PathVariable
 -----------------
-http://localhost:8080/app-01-spring/hello/delete/22 
+http://localhost:8080/app-01-spring/api/book/25/author/2
+
+
+
+http://localhost:8080/app-01-spring/hello/delete/5 
 ---------------------
 
 @Controller
@@ -260,6 +267,10 @@ public class Hello2Controller {
 
 
 
+
+
+@RequestParam
+-----------------
 foo?un=raj&pw=raj
 
 @Controller
@@ -916,11 +927,6 @@ Spring mvc crud application With prepoputated values
 
 
 
-
-
-
-
-
 @Entity
 public class Book {
 	@Id
@@ -1117,7 +1123,7 @@ public class Book {
 	@GeneratedValue
 	private int id;
 	
-	@IsValidIsbn
+	
 	@NotEmpty(message="isbn cant left blank")
 	private String isbn;
 	
@@ -1398,12 +1404,15 @@ http://websystique.com/springmvc/spring-4-mvc-helloworld-tutorial-annotation-jav
 
 
 Root Application Context vs WebApplicationContext
+=====================================================
 
 
-
-   ContextLoaderListener     |-------- WebApplicationContext 1
+   ContextLoaderListener    |--------  WebApplicationContext 1
 Root Application Context----|--------- WebApplicationContext 2
-			    |---------- WebApplicationContext 3
+			    |----------WebApplicationContext 3
+
+
+
 
 
 
